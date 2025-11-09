@@ -1,0 +1,52 @@
+{
+  "RAW_DATA_DIR": "./data/",
+  "PUBLIC_MANIFEST": "./manifests/public_canonical120.txt",
+  "EVALS_MANIFEST": "./manifests/evaluation.txt",
+  "CANONICAL_PUBLIC_MANIFEST": "./manifests/public_canonical120.txt",
+  "CANONICAL_EVALS_MANIFEST": "./manifests/evaluation.txt",
+  "MODEL_DIR": "./frozen_model/",
+  "CODE_COMMIT_LOCK_PATH": "./frozen_model/code_commit.lock",
+  "ARTIFACTS_DIR": "./artifacts/",
+  "LOGS_DIR": "./artifacts/logs/",
+  "SUBMISSION_DIR": "./artifacts/submission/",
+  "OUTPUT_FORMAT": "jsonl",
+  "TOPK_SOLUTIONS": 2,
+  "FAIL_CLOSED": true,
+  "REQUIRE_120_TASKS": true,
+  "CHECKSUMS": {
+    "manifests/public_canonical120.txt": "c440b5a56c4d03ac2f9acf38cdcb0e9f5d1ab2d544bbbe3b95e51f9faa00ce17",
+    "manifests/evaluation.txt": "54ca25cdc4444e5669e272e25cbe301bbfe3aa81da8f555126095153aff69425",
+    "manifests/training_canonical1000.txt": "6031afc0c6f31a05793362bbf162b4d75448efdcf43afb1e79d4bc54ada9c2a2"
+  },
+  "RUNTIME_LIMIT_MS_P95": 300,
+  "CANONICAL_TASK_COUNT": 120,
+  "DETERMINISTIC_FLAGS": {
+    "DETERMINISTIC": "1",
+    "NO_ADAPT": "1",
+    "MODEL_FREEZE": "1",
+    "RIL_SEED": "1337",
+    "PYTHONHASHSEED": "1337"
+  },
+  "FEATURE_FLAGS": {
+    "RIL_PALETTE_MAPPER_ON": "1",
+    "RIL_PALETTE_TOPK": "1",
+    "RIL_REQUIRE_BIJ": "1",
+    "RIL_GATE_LOGGING": "1",
+    "RIL_PALETTE_SUPPORT_MIN": "0.85",
+    "RIL_CSP_EVIDENCE_MIN": "0.74",
+    "RIL_PALETTE_FLOOR": "2",
+    "RIL_PALETTE_RESCUE_KEEP_RATIO": "0.6",
+    "RIL_GATE_SOFT_TOPK": "64",
+    "RIL_SCORING_MIN_AREA": "10"
+  },
+  "FAIL_CLOSED_CONFIG": {
+    "ENABLED": true,
+    "RETRY_MAX": 4,
+    "RETRY_BACKOFF_START_SEC": 5,
+    "LOCKFILE_PATH": "./configs/locks/run.lock",
+    "PROHIBIT_DOWNSCALE": true,
+    "ALLOW_DOWNSCALE_ENV": "ALLOW_DOWNSCALE"
+  },
+  "TRAIN_MANIFEST": "./manifests/training_canonical1000.txt",
+  "CANONICAL_TRAIN_MANIFEST": "./manifests/training_canonical1000.txt"
+}

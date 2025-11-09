@@ -1,0 +1,9 @@
+# ARC-AGI-2 Rule Induction Layer Dependencies
+# For Kaggle competition environment
+
+# Testing (optional - development only)
+pytest>=7.0.0
+pytest-order>=1.0.0
+
+# Core: stdlib-only at runtime; optional accelerators below
+# numpy is OPTIONAL: used when present; CI installs it
