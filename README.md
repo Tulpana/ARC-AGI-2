@@ -1,0 +1,32 @@
+# ARC-AGI-2 Rule Induction Layer (RIL)
+
+## Overview
+The ARC-AGI-2 submission is built around the Rule Induction Layer (RIL), a deterministic five-stage solver pipeline (Abstract Encoding → Candidate Generation → Beam Search → CSP Filtering → Output). The solver enforces strict label-leakage guards and instrumentation so the same code path can run both locally and in competition environments without accessing ground-truth labels during hypothesis generation.【F:arc_agi_2_submission/ril/solver.py†L3-L21】 Deterministic settings and feature flags in `SETTINGS.json` ensure reproducible runs, canonical manifest validation, and competition-safe defaults.【F:arc_agi_2_submission/SETTINGS.json†L1-L52】
+
+## Pipeline Stages
+1. **Abstract Encoder** – The solver summarizes each training pair’s shape, palette, positional correspondences, and size ratios, then derives gating hints (palette floors, frozen masks, border diagnostics). This stage produces the `GateContext` that constrains downstream search and captures border/palette evidence for later snapping heuristics.【F:arc_agi_2_submission/ril/solver.py†L3398-L3475】【F:arc_agi_2_submission/ril/solver.py†L4363-L4478】
+2. **Candidate Generation** – Guided by the abstract hints, the solver seeds a diverse pool of hypotheses: identity, motif crops, dimensional downsamplings, color-map learning, simple geometric transforms, axis projectors, and more. Each candidate is wrapped with provenance metadata and prechecked palette/shape constraints before scoring.【F:arc_agi_2_submission/ril/solver.py†L3476-L3502】【F:arc_agi_2_submission/ril/solver.py†L4557-L4680】 Palette coverage is reinforced by the `palette_rescue` gate when the candidate pool collapses to too few colors.【F:arc_agi_2_submission/gates/palette_rescue.py†L1-L64】
+3. **Beam Search** – Candidates that pass plausibility gating are ranked using a composite score that rewards perfect or partial train fits, shape priors, pattern-specific heuristics, and palette completion while penalizing inconsistent shapes and palettes. The beam keeps an expanded shortlist (≥3×Top-K) for CSP verification.【F:arc_agi_2_submission/ril/solver.py†L5209-L5343】
+4. **CSP Filtering** – A lightweight constraint solver enforces grid bounds, palette ranges, and rectangularity before blending beam scores into a final confidence estimate, ensuring only valid ARC grids advance.【F:arc_agi_2_submission/ril/solver.py†L3977-L3988】【F:arc_agi_2_submission/ril/solver.py†L5442-L5480】
+5. **Output Formatting** – Surviving grids are post-processed (e.g., consensus color maps applied, border diagnostics recorded) and scored so the final payload reports candidate provenance, confidence, and trace metadata for auditability.【F:arc_agi_2_submission/ril/solver.py†L3990-L4037】【F:arc_agi_2_submission/ril/solver.py†L5482-L5520】
+
+## Task Evaluation and Instrumentation
+- `run_ril_prediction` orchestrates dataset loading, solver invocation, and optional label-aware scoring. When gold labels are available (e.g., offline evaluation), it computes per-attempt metrics, annotates solver traces, and can emit structured metrics rows for later analysis.【F:arc_agi_2_submission/predict_competition.py†L1504-L1702】
+- Structured counters and sample statistics are collected throughout inference via the lightweight `Metrics` helper, which dumps JSON payloads to stderr for every task, enabling reproducibility checks and performance profiling.【F:arc_agi_2_submission/ril/metrics.py†L1-L58】【F:arc_agi_2_submission/ril/solver.py†L3398-L4010】
+- `debug_eval.py` offers a standalone harness for quick accuracy checks: it runs `solve_arc_task` over evaluation splits, tallies hit/miss statistics, and can export per-task Hamming distances for error analysis.【F:arc_agi_2_submission/debug_eval.py†L62-L199】
+- `validate_submission.py` validates generated submissions against the official ARC schema, confirming task coverage, attempt counts, and grid bounds before packaging for Kaggle upload.【F:arc_agi_2_submission/validate_submission.py†L1-L115】
+
+## Key Features and Innovations
+- **Adaptive Enhancements Wrapper** – A feature-flagged wrapper can short-circuit the main solver when a perfect match, pure color extraction, or small-grid pattern is detected, and post-process candidates with palette, shape, and component oracles for adaptive filtering.【F:arc_agi_2_submission/ril/solver_enhancements.py†L1-L228】
+- **Rich Gating Context** – `GateContext` tracks shape allowances, palette provenance, frozen regions, and soft floors/ratios so gating decisions remain data-informed while still permitting controlled exploration.【F:arc_agi_2_submission/ril/solver.py†L180-L234】
+- **Palette Resilience** – Palette rescue utilities seed missing colors and maintain diversity in the candidate pool, preventing early elimination of necessary hues during gating.【F:arc_agi_2_submission/gates/palette_rescue.py†L22-L169】
+- **Train-to-Test Consistency Checks** – Beam ranking incorporates train-fit validation, consensus color maps, and palette completion scores to elevate candidates that generalize training transformations to test grids.【F:arc_agi_2_submission/ril/solver.py†L5259-L5364】
+- **Traceability and Safeguards** – End-to-end traces capture gate decisions, beam rankings, and final predictions, while environment guards prevent accidental evaluation with labels, supporting robust auditing across runs.【F:arc_agi_2_submission/ril/solver.py†L12-L21】【F:arc_agi_2_submission/ril/solver.py†L3895-L4037】
+
+## Getting Started
+1. Prepare `SETTINGS.json` and ARC manifests (defaults target the canonical public/evaluation sets).【F:arc_agi_2_submission/SETTINGS.json†L1-L52】
+2. Run `predict_competition.py --settings SETTINGS.json --manifest <manifest.txt> --topk 2 --out submission.json` to generate predictions and optional metrics logs.【F:arc_agi_2_submission/predict_competition.py†L1504-L1702】【F:arc_agi_2_submission/predict_competition.py†L1934-L1996】
+3. Validate the resulting `submission.json` before upload using `validate_submission.py` to guarantee schema compliance.【F:arc_agi_2_submission/validate_submission.py†L66-L115】
+4. For offline benchmarking, use `debug_eval.py` with evaluation challenges and solutions to compute accuracy and export Hamming statistics.【F:arc_agi_2_submission/debug_eval.py†L165-L199】
+
+This README should give new contributors or reviewers a concise map of how RIL operates, how to evaluate it responsibly, and what differentiates this approach within the ARC-AGI-2 competition.
