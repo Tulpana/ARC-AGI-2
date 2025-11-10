@@ -1,4 +1,4 @@
-# ARC-AGI-2 Rule Induction Layer (RIL)
+# Tulpana Rule Induction Layer (RIL) Solver for ARC-AGI-2
 
 ## Overview
 The ARC-AGI-2 submission is built around the Rule Induction Layer (RIL), a deterministic five-stage solver pipeline (Abstract Encoding → Candidate Generation → Beam Search → CSP Filtering → Output). The solver enforces strict label-leakage guards and instrumentation so the same code path can run both locally and in competition environments without accessing ground-truth labels during hypothesis generation.【F:arc_agi_2_submission/ril/solver.py†L3-L21】 Deterministic settings and feature flags in `SETTINGS.json` ensure reproducible runs, canonical manifest validation, and competition-safe defaults.【F:arc_agi_2_submission/SETTINGS.json†L1-L52】
